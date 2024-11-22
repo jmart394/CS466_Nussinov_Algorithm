@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nussinov Algorithm Visualization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1, h3 {
+            text-align: center;
+        }
+
+        input[type="text"] {
+            width: 300px;
+            height: 40px;
+            font-size: 16px;
+            padding: 5px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            font-size: 16px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        table {
+            border-collapse: collapse;
+            margin: 20px auto;
+            overflow: auto;
+            display: block; /* Makes the table scrollable */
+            max-width: 100%; /* Ensures it fits horizontally within the viewport */
+        }
+
+        td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+            width: 40px; /* Ensures uniform cell width */
+            height: 40px; /* Ensures uniform cell height */
+            font-size: 12px; /* Reduces font size to better fit content */
+        }
+
+        .highlight {
+            background-color: yellow;
+        }
+
+        #output {
+            margin-top: 20px;
+            max-height: 60vh; /* Limits the height of the output */
+            overflow-y: auto; /* Adds a vertical scroll for long tables */
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Nussinov Algorithm Visualization</h1>
+
+    <!-- Sequence Input -->
+    <form id="sequenceForm" method="POST">
+        <input type="text" id="sequence" name="sequence" placeholder="Enter RNA Sequence (≤ 20 chars)" required>
+        <button type="submit">Run Algorithm</button>
+    </form>
+
+    <!-- Output Section -->
+    <div id="output">
+        <!-- This will be dynamically filled with the DP table and predicted structure -->
+    </div>
+
+    <script>
+        document.getElementById("sequenceForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const sequence = document.getElementById("sequence").value;
+            const validCharacters = /^[AUCG]*$/i; // Regex for valid RNA nucleotides
+
+            // Validation: Ensure sequence length is ≤ 20 and contains only valid characters
+            if (sequence.length > 20) {
+                alert("Please enter a valid RNA sequence (≤ 20 characters).");
+                return;
+            }
+            if (!validCharacters.test(sequence)) {
+                alert("Invalid sequence! Please enter an RNA sequence containing only A, U, C, and G.");
+                return;
+            }
+
+            // Make a POST request to the server to get the DP table and structure
+            const response = await fetch("/nussinov", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ sequence })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                displayResults(data.dp_table, data.visited_cells, data.structure, sequence);
+            } else {
+                alert(data.error);
+            }
+        });
+
+        function displayResults(dpTable, visitedCells, structure, sequence) {
+            let tableHTML = `<h3>DP Table for RNA Sequence: ${sequence}</h3><table>`;
+            for (let i = 0; i < dpTable.length; i++) {
+                tableHTML += "<tr>";
+                for (let j = 0; j < dpTable[i].length; j++) {
+                    const highlightClass = visitedCells.some(([x, y]) => x === i && y === j) ? "highlight" : "";
+                    tableHTML += `<td class="${highlightClass}">${dpTable[i][j]}</td>`;
+                }
+                tableHTML += "</tr>";
+            }
+            tableHTML += "</table>";
+
+            const structureHTML = `<h3>Predicted Secondary Structure:</h3><p>${structure}</p>`;
+
+            document.getElementById("output").innerHTML = tableHTML + structureHTML;
+        }
+    </script>
+</body>
+</html>
