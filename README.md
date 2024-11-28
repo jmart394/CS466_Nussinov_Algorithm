@@ -33,10 +33,6 @@ This project implements the Nussinov algorithm, as discussed in class, to visual
      ```bash
      flask run --port=4000
      ```
-     Alternatively, you can run:
-     ```bash
-     python3 app.py
-     ```
      > ⚠️ Note: The backend is configured for port 4000, as port 5000 is commonly used by other services on macOS.
 
 2. **Set up the React Frontend**
