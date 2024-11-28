@@ -18,10 +18,6 @@ This project implements the Nussinov algorithm, as discussed in class, to visual
      ```bash
      cd flask-server
      ```
-   - Activate the virtual environment:
-     ```bash
-     source venv/bin/activate
-     ```
    - Install required Python packages:
      ```bash
      pip install Flask
