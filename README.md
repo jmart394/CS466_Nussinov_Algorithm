@@ -11,11 +11,6 @@ This project implements the Nussinov algorithm, as discussed in class, to visual
 
 ## Installation and Setup
 
-### Prerequisites
-- **Python** (>=3.6) installed on your system.
-- **Node.js** and **npm** installed (for React frontend).
-- A virtual environment manager like `venv` for Python.
-
 ### Instructions to Run the Application
 
 1. **Set up the Flask Backend**
