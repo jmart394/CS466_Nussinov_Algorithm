@@ -1,0 +1,19 @@
+TODOs:
+
+1. Double check nussinov implementation + backtrace, make sure it's the correct recursion
+
+2. UI Modifications:
+2. a. Grey out bottom left triangle of cells (unused in nussinov algorithm)
+2. b. Highlight final number in a different color from other visited cells (will require changing return val in python file)
+2. c. Label rows and columns of DP table to show what character it corresponds to
+2. d. Add more CSS to make the DP and results grid look nicer/better spaced
+2. e. (REACH GOAL, might be hard) --> add backpointer visualization so user can see exactly how DP table should be traced
+
+3. Functionality Additions:
+3. a. Supply real-life RNA samples (take from kaggle, we can potentially still provide the predicted secondary structure without showcasing the entire DP table for strings > 20 chars)
+3. b. Import this library for secondary structure visualizaion (https://github.com/ViennaRNA/forna) --> YUH this is so cool and all we need to provide is string and dot-parenthesis notation
+
+4. other
+4. a. Clean up read mes and make instructions very clear at top-level readME
+4. b. Presentation
+4. c. Report

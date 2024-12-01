@@ -1,28 +1,26 @@
 import React, { useState } from "react";
 
 function NussinovApp() {
-  const [sequence, setSequence] = useState(""); // State for input sequence
-  const [dpTable, setDpTable] = useState([]); // State for DP Table
-  const [visitedCells, setVisitedCells] = useState([]); // State for visited cells
-  const [structure, setStructure] = useState(""); // State for predicted structure
-  const [error, setError] = useState(""); // State for errors
+  const [sequence, setSequence] = useState("");
+  const [dpTable, setDpTable] = useState([]);
+  const [visitedCells, setVisitedCells] = useState([]);
+  const [structure, setStructure] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const validCharacters = /^[AUCG]*$/i; // Valid RNA characters
+    const validCharacters = /^[AUCG]*$/i;
 
-    // Validation: Check sequence length and validity
     if (sequence.length > 20) {
-      alert("Please enter a valid RNA sequence (≤ 20 characters).");
+      setError("Please enter a valid RNA sequence (≤ 20 characters).");
       return;
     }
     if (!validCharacters.test(sequence)) {
-      alert("Invalid sequence! Please use only A, U, C, and G.");
+      setError("Invalid sequence! Please use only A, U, C, and G.");
       return;
     }
 
     try {
-      // Send the sequence to the backend for processing
       const response = await fetch("http://localhost:4000/nussinov", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -34,7 +32,7 @@ function NussinovApp() {
         setDpTable(data.dp_table);
         setVisitedCells(data.visited_cells);
         setStructure(data.structure);
-        setError(""); // Clear errors if any
+        setError("");
       } else {
         setError(data.error);
       }
@@ -45,6 +43,7 @@ function NussinovApp() {
 
   return (
     <div style={styles.container}>
+      {error && <div style={styles.errorBar}>{error}</div>}
       <h1>Nussinov Algorithm Visualization</h1>
       <form onSubmit={handleSubmit} style={styles.form}>
         <input
@@ -60,7 +59,6 @@ function NussinovApp() {
         </button>
       </form>
       <div style={styles.output}>
-        {error && <p style={styles.error}>{error}</p>}
         {dpTable.length > 0 && (
           <div>
             <h3>DP Table for RNA Sequence: {sequence}</h3>
@@ -92,7 +90,24 @@ function NussinovApp() {
         {structure && (
           <div>
             <h3>Predicted Secondary Structure:</h3>
-            <p>{structure}</p>
+            {/* <p>{structure}</p> */}
+            <table style={styles.structureTable}>
+            <tbody>
+                <tr>
+                {sequence.split('').map((char, index) => (
+                    <td key={`seq-${index}`} style={styles.structureCell}>{char}</td>
+                ))}
+                </tr>
+                <tr>
+                {structure.split('').map((char, index) => (
+                    <td key={`struct-${index}`} style={styles.structureCell}>
+                    <span style={{ fontWeight: 'bold', fontSize: '18px' }}>{char}</span>
+
+                    </td>
+                ))}
+                </tr>
+            </tbody>
+            </table>
           </div>
         )}
       </div>
@@ -107,7 +122,8 @@ const styles = {
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    height: "100vh",
+    minHeight: "100vh",
+    paddingTop: "10px",
     padding: "20px",
   },
   form: {
@@ -125,7 +141,8 @@ const styles = {
   },
   button: {
     fontSize: "16px",
-    padding: "10px 20px",
+    padding: "16px 20px",
+    margin: "10px",
     backgroundColor: "#007bff",
     color: "white",
     border: "none",
@@ -157,10 +174,35 @@ const styles = {
   highlight: {
     backgroundColor: "yellow",
   },
-  error: {
-    color: "red",
-    fontWeight: "bold",
-  },
+  errorBar: {
+  backgroundColor: "#ffcccc",
+  color: "#cc0000",
+  padding: "10px",
+  margin: "20px auto",
+  width: "50%",
+  textAlign: "center",
+  fontWeight: "bold",
+  position: "fixed",
+  top: 0,
+  left: "50%",
+  transform: "translateX(-50%)",
+  zIndex: 1000,
+  borderRadius: '10px',
+},
+
+structureTable: {
+  borderCollapse: "collapse",
+  margin: "20px auto",
+  maxWidth: "100%",
+},
+structureCell: {
+  border: "1px solid black",
+  padding: "10px",
+  textAlign: "center",
+  width: "30px",
+  height: "30px",
+  fontSize: "14px",
+},
 };
 
 export default NussinovApp;
