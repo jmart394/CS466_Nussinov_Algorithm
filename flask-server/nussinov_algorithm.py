@@ -43,11 +43,8 @@ def nussinov_algorithm(sequence):
             j = i + length  # Calculate end index
             unpaired_i = dp[i + 1][j] 
             unpaired_j = dp[i][j - 1] 
-            pair_ij = dp[i + 1][j - 1] + (1 if pairs.get(sequence[i]) == sequence[j] else 0)  # Pair i and j
-            if i + 1 < j:
-                bifurcation = max(dp[i][k] + dp[k + 1][j] for k in range(i + 1, j))
-            else:
-                bifurcation = 0
+            pair_ij = dp[i + 1][j - 1] + (1 if pairs.get(sequence[i]) == sequence[j] and j - i > MIN_LOOP_LENGTH else 0)
+            bifurcation = max((dp[i][k] + dp[k + 1][j] for k in range(i, j)), default=0)
             dp[i][j] = max(unpaired_i, unpaired_j, pair_ij, bifurcation)
 
     # backtrace to determine optimal structure

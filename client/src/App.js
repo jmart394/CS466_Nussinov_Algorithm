@@ -7,13 +7,14 @@ function NussinovApp() {
   const [visitedCells, setVisitedCells] = useState([]);
   const [structure, setStructure] = useState("");
   const [error, setError] = useState("");
+  const [isDpTableVisible, setIsDpTableVisible] = useState(true);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     const validCharacters = /^[AUCG]*$/i;
 
-    if (sequence.length > 20) {
-      setError("Please enter a valid RNA sequence (≤ 20 characters).");
+    if (sequence.length > 30) {
+      setError("Please enter a valid RNA sequence (≤ 30 characters).");
       return;
     }
     if (!validCharacters.test(sequence)) {
@@ -30,7 +31,7 @@ function NussinovApp() {
 
       const data = await response.json();
       if (response.ok) {
-        setDpTable(data.dp_table);
+        setDpTable(modifyDpTable(data.dp_table));
         setVisitedCells(data.visited_cells);
         setStructure(data.structure);
         setError("");
@@ -41,6 +42,35 @@ function NussinovApp() {
       setError("An unexpected error occurred while processing your request.");
     }
   };
+
+  const FoldingBar = ({ isVisible, toggleVisibility }) => (
+    <div
+      style={{
+        backgroundColor: '#f0f0f0',
+        padding: '12px 20px',
+        cursor: 'pointer',
+        textAlign: 'center',
+        borderRadius: '8px 8px 0 0',
+        boxShadow: '0 -2px 5px rgba(0,0,0,0.1)',
+        transition: 'all 0.3s ease',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        fontWeight: 'bold',
+        color: '#333',
+      }}
+      onClick={toggleVisibility}
+    >
+      <span>{isVisible ? 'Hide DP Table' : 'Show DP Table'}</span>
+      <span style={{
+        transform: isVisible ? 'rotate(180deg)' : 'rotate(0deg)',
+        transition: 'transform 0.3s ease',
+        fontSize: '20px',
+      }}>
+        ▼
+      </span>
+    </div>
+  );
 
   useEffect(() => {
     if (structure && sequence) {
@@ -63,6 +93,19 @@ function NussinovApp() {
     }
   }, [structure, sequence]);
 
+  const modifyDpTable = (dpTable) => {
+    const rows = dpTable.length;
+    const cols = dpTable[0].length;
+    return dpTable.map((row, i) =>
+      row.map((cell, j) => ({
+        value: cell,
+        style: {
+          opacity: i >= j ? 0.5 : 1,
+          backgroundColor: i >= j ? 'lightgray' : 'white',
+        },
+      }))
+    );
+  };
 
   return (
     <div style={styles.container}>
@@ -73,7 +116,7 @@ function NussinovApp() {
           type="text"
           value={sequence}
           onChange={(e) => setSequence(e.target.value)}
-          placeholder="Enter RNA Sequence (≤ 20 chars)"
+          placeholder="Enter RNA Sequence (≤ 30 chars)"
           required
           style={styles.input}
         />
@@ -83,37 +126,50 @@ function NussinovApp() {
       </form>
       <div style={styles.output}>
         {dpTable.length > 0 && (
-          <div>
-            <h3>DP Table for RNA Sequence: {sequence}</h3>
-            <table style={styles.table}>
-              <tbody>
-                {dpTable.map((row, i) => (
-                  <tr key={i}>
-                    {row.map((cell, j) => (
-                      <td
-                        key={`${i}-${j}`}
-                        style={{
-                          ...styles.cell,
-                          ...(visitedCells.some(
-                            ([x, y]) => x === i && y === j
-                          )
-                            ? styles.highlight
-                            : {}),
-                        }}
-                      >
-                        {cell}
-                      </td>
-                    ))}
-                  </tr>
+  <div>
+    <FoldingBar
+      isVisible={isDpTableVisible}
+      toggleVisibility={() => setIsDpTableVisible(!isDpTableVisible)}
+    />
+    <div style={{
+  ...styles.dpTableContainer,
+  ...(isDpTableVisible ? {} : styles.dpTableHidden)
+}}>
+    {isDpTableVisible && (
+      <>
+        <h3>DP Table for RNA Sequence: {sequence}</h3>
+        <table style={styles.table}>
+          <tbody>
+            {dpTable.map((row, i) => (
+              <tr key={i}>
+                {row.map((cell, j) => (
+                    <td
+                    key={`${i}-${j}`}
+                    style={{
+                        ...styles.cell,
+                        ...cell.style,
+                        ...(i === 0 && j === dpTable[0].length - 1
+                        ? { backgroundColor: 'lightgreen' }
+                        : visitedCells.some(([x, y]) => x === i && y === j)
+                        ? styles.highlight
+                        : {}),
+                    }}
+                    >
+                    {cell.value}
+                    </td>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </>
+    )}
+    </div>
+  </div>
+)}
         {structure && (
           <div>
             <h3>Predicted Secondary Structure:</h3>
-            {/* <p>{structure}</p> */}
             <table style={styles.structureTable}>
             <tbody>
                 <tr>
@@ -131,6 +187,7 @@ function NussinovApp() {
                 </tr>
             </tbody>
             </table>
+            <h3>Visualization:</h3>
             <div id="fornaContainer" style={styles.fornaContainer}></div> {/* Forna Container */}
           </div>
         )}
@@ -179,7 +236,7 @@ const styles = {
   },
   output: {
     marginTop: "20px",
-    maxHeight: "60vh",
+    // maxHeight: "60vh",
     overflowY: "auto",
     textAlign: "center",
   },
@@ -234,6 +291,14 @@ fornaContainer: {
   border: "1px solid black",
   marginTop: "20px",
   margin: "20px auto",
+},
+dpTableContainer: {
+  maxHeight: '1000px',
+  overflow: 'hidden',
+  transition: 'max-height 0.3s ease-out',
+},
+dpTableHidden: {
+  maxHeight: '0',
 },
 };
 
