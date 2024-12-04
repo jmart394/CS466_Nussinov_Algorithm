@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { FornaContainer } from "fornac";
 
 function NussinovApp() {
   const [sequence, setSequence] = useState("");
@@ -40,6 +41,28 @@ function NussinovApp() {
       setError("An unexpected error occurred while processing your request.");
     }
   };
+
+  useEffect(() => {
+    if (structure && sequence) {
+      try {
+        const fornaContainer = new FornaContainer("#fornaContainer", {
+          animation: false,
+          zoomable: true,
+          initialSize: [600, 300],
+        });
+
+        const options = {
+          structure: structure,
+          sequence: sequence,
+        };
+
+        fornaContainer.addRNA(options.structure, options);
+      } catch (error) {
+        console.error("Error initializing FornaContainer:", error);
+      }
+    }
+  }, [structure, sequence]);
+
 
   return (
     <div style={styles.container}>
@@ -108,8 +131,10 @@ function NussinovApp() {
                 </tr>
             </tbody>
             </table>
+            <div id="fornaContainer" style={styles.fornaContainer}></div> {/* Forna Container */}
           </div>
         )}
+        
       </div>
     </div>
   );
@@ -202,6 +227,13 @@ structureCell: {
   width: "30px",
   height: "30px",
   fontSize: "14px",
+},
+fornaContainer: {
+  width: "80%",
+  height: "400px",
+  border: "1px solid black",
+  marginTop: "20px",
+  margin: "20px auto",
 },
 };
 
