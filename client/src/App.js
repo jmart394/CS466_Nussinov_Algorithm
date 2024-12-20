@@ -9,6 +9,15 @@ function NussinovApp() {
   const [error, setError] = useState("");
   const [isDpTableVisible, setIsDpTableVisible] = useState(true);
 
+  const handleInputChange = (e) => {
+    const capitalizedInput = e.target.value.toUpperCase();
+    setSequence(capitalizedInput);
+    setIsDpTableVisible(false);
+    setDpTable([]);
+    setVisitedCells([]);
+    setStructure("");
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     const validCharacters = /^[AUCG]*$/i;
@@ -35,6 +44,7 @@ function NussinovApp() {
         setVisitedCells(data.visited_cells);
         setStructure(data.structure);
         setError("");
+        setIsDpTableVisible(true);
       } else {
         setError(data.error);
       }
@@ -65,7 +75,7 @@ function NussinovApp() {
       <span style={{
         transform: isVisible ? 'rotate(180deg)' : 'rotate(0deg)',
         transition: 'transform 0.3s ease',
-        fontSize: '20px',
+        fontSize: '30px',
       }}>
         ▼
       </span>
@@ -115,7 +125,7 @@ function NussinovApp() {
         <input
           type="text"
           value={sequence}
-          onChange={(e) => setSequence(e.target.value)}
+          onChange={handleInputChange}
           placeholder="Enter RNA Sequence (≤ 30 chars)"
           required
           style={styles.input}
@@ -138,30 +148,43 @@ function NussinovApp() {
     {isDpTableVisible && (
       <>
         <h3>DP Table for RNA Sequence: {sequence}</h3>
-        <table style={styles.table}>
-          <tbody>
-            {dpTable.map((row, i) => (
-              <tr key={i}>
-                {row.map((cell, j) => (
-                    <td
-                    key={`${i}-${j}`}
-                    style={{
-                        ...styles.cell,
-                        ...cell.style,
-                        ...(i === 0 && j === dpTable[0].length - 1
-                        ? { backgroundColor: 'lightgreen' }
-                        : visitedCells.some(([x, y]) => x === i && y === j)
-                        ? styles.highlight
-                        : {}),
-                    }}
-                    >
-                    {cell.value}
-                    </td>
+        <div style={styles.tableWrapper}>
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th style={styles.dpTableHeader}></th>
+                {sequence.split('').map((char, index) => (
+                  <th key={`header-${index}`} style={styles.dpTableHeader}>
+                    {char}
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {dpTable.map((row, i) => (
+                <tr key={i}>
+                  <td style={styles.dpTableHeader}>{sequence[i]}</td> 
+                  {row.map((cell, j) => (
+                      <td
+                      key={`${i}-${j}`}
+                      style={{
+                          ...styles.cell,
+                          ...cell.style,
+                          ...(i === 0 && j === dpTable[0].length - 1
+                          ? { backgroundColor: 'lightgreen' }
+                          : visitedCells.some(([x, y]) => x === i && y === j)
+                          ? styles.highlight
+                          : {}),
+                      }}
+                      >
+                      {cell.value}
+                      </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </>
     )}
     </div>
@@ -180,7 +203,7 @@ function NussinovApp() {
                 <tr>
                 {structure.split('').map((char, index) => (
                     <td key={`struct-${index}`} style={styles.structureCell}>
-                    <span style={{ fontWeight: 'bold', fontSize: '18px' }}>{char}</span>
+                    <span style={{ fontWeight: 'bold', fontSize: '20px' }}>{char}</span>
 
                     </td>
                 ))}
@@ -215,15 +238,15 @@ const styles = {
   input: {
     width: "300px",
     height: "40px",
-    fontSize: "16px",
+    fontSize: "18px",
     padding: "5px",
     margin: "10px 0",
     border: "1px solid #ccc",
     borderRadius: "5px",
   },
   button: {
-    fontSize: "16px",
-    padding: "16px 20px",
+    fontSize: "18px",
+    padding: "18px 20px",
     margin: "10px",
     backgroundColor: "#007bff",
     color: "white",
@@ -240,10 +263,19 @@ const styles = {
     overflowY: "auto",
     textAlign: "center",
   },
+  tableWrapper: {
+    maxWidth: '100vw',
+    maxHeight: '70vh',
+    overflow: 'auto',
+    margin: '0 auto',
+  },
   table: {
     borderCollapse: "collapse",
     margin: "20px auto",
-    maxWidth: "100%",
+    width: "auto",
+    minWidth: '100%',
+    height: "auto",
+    minHeight: '100%',
   },
   cell: {
     border: "1px solid black",
@@ -251,7 +283,7 @@ const styles = {
     textAlign: "center",
     width: "40px",
     height: "40px",
-    fontSize: "12px",
+    fontSize: "20px",
   },
   highlight: {
     backgroundColor: "yellow",
@@ -283,7 +315,7 @@ structureCell: {
   textAlign: "center",
   width: "30px",
   height: "30px",
-  fontSize: "14px",
+  fontSize: "20px",
 },
 fornaContainer: {
   width: "80%",
@@ -299,6 +331,19 @@ dpTableContainer: {
 },
 dpTableHidden: {
   maxHeight: '0',
+},
+dpTableHeader: {
+  border: "1px solid black",
+  padding: "10px",
+  textAlign: "center",
+  width: "40px",
+  height: "40px",
+  fontSize: "20px",
+  fontWeight: "bold",
+  backgroundColor: "#f8f9fa",
+  position: "sticky",
+  top: 0,
+  zIndex: 1,
 },
 };
 
